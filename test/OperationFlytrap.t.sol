@@ -37,7 +37,7 @@ contract ExploitReproductionTest is TestBase {
         vm.etch(TARGET, address(protocolImpl).code);
         protocol = CurveVyperReentrancyProtocolMock(TARGET);
         attacker = new CurveVyperReentrancyAttacker(TARGET);
-        response = new CurveVyperReentrancyResponse();
+        response = new CurveVyperReentrancyResponse(REGISTRY_ADDR);
         protocol.setToken(TOKEN);
         protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
@@ -74,7 +74,7 @@ contract TrapLifecycleTest is TestBase {
         vm.etch(TARGET, address(protocolImpl).code);
         protocol = CurveVyperReentrancyProtocolMock(TARGET);
         attacker = new CurveVyperReentrancyAttacker(TARGET);
-        response = new CurveVyperReentrancyResponse();
+        response = new CurveVyperReentrancyResponse(REGISTRY_ADDR);
         protocol.setToken(TOKEN);
         protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
@@ -126,7 +126,7 @@ contract ContainmentTest is TestBase {
         vm.etch(TARGET, address(protocolImpl).code);
         protocol = CurveVyperReentrancyProtocolMock(TARGET);
         attacker = new CurveVyperReentrancyAttacker(TARGET);
-        response = new CurveVyperReentrancyResponse();
+        response = new CurveVyperReentrancyResponse(REGISTRY_ADDR);
         protocol.setToken(TOKEN);
         protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
@@ -169,7 +169,7 @@ contract ResponseAuthorizationTest is TestBase {
         vm.etch(TARGET, address(protocolImpl).code);
         protocol = CurveVyperReentrancyProtocolMock(TARGET);
         attacker = new CurveVyperReentrancyAttacker(TARGET);
-        response = new CurveVyperReentrancyResponse();
+        response = new CurveVyperReentrancyResponse(REGISTRY_ADDR);
         protocol.setToken(TOKEN);
         protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
@@ -225,7 +225,7 @@ contract FuzzTest is TestBase {
         vm.etch(TARGET, address(protocolImpl).code);
         protocol = CurveVyperReentrancyProtocolMock(TARGET);
         attacker = new CurveVyperReentrancyAttacker(TARGET);
-        response = new CurveVyperReentrancyResponse();
+        response = new CurveVyperReentrancyResponse(REGISTRY_ADDR);
         protocol.setToken(TOKEN);
         protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
