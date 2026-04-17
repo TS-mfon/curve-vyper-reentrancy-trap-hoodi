@@ -7,8 +7,9 @@ interface IMockToken {
 }
 
 contract CurveVyperReentrancyProtocolMock {
-    address public constant DEFAULT_TOKEN = address(0x0000000000000000000000000000000000002002);
-    address public token = DEFAULT_TOKEN;
+    address public owner;
+    address public emergencyModule;
+    address public token;
     address public attacker;
     bool public paused;
     bool public staged;
@@ -19,9 +20,31 @@ contract CurveVyperReentrancyProtocolMock {
     uint256 public virtualPrice;
     uint256 public totalSupply;
 
+    error NotOwner();
+    error NotEmergencyModule();
+    error ProtocolPaused();
+
+    constructor(address token_) {
+        owner = msg.sender;
+        token = token_;
+    }
+
+    function setEmergencyModule(address emergencyModule_) external {
+        _claimOwnerIfNeeded();
+        if (msg.sender != owner) revert NotOwner();
+        emergencyModule = emergencyModule_;
+    }
+
+    function setToken(address token_) external {
+        _claimOwnerIfNeeded();
+        if (msg.sender != owner) revert NotOwner();
+        token = token_;
+    }
+
     function seedHealthy(address attacker_) external {
+        _claimOwnerIfNeeded();
+        if (msg.sender != owner) revert NotOwner();
         attacker = attacker_;
-        if (token == address(0)) token = DEFAULT_TOKEN;
         paused = false;
         staged = false;
         accountedBalance0 = 1_000_000e18;
@@ -32,11 +55,8 @@ contract CurveVyperReentrancyProtocolMock {
         totalSupply = 2_000_000e18;
     }
 
-    function setToken(address token_) external {
-        token = token_;
-    }
-
     function stageReentrantReserveMismatch() external {
+        if (paused) revert ProtocolPaused();
         accountedBalance0 = 1_000_000e18;
         accountedBalance1 = 1_000_000e18;
         actualBalance0 = 650_000e18;
@@ -47,12 +67,13 @@ contract CurveVyperReentrancyProtocolMock {
     }
 
     function completeReentrantWithdrawal() external {
-        require(!paused, "PROTOCOL_PAUSED");
+        if (paused) revert ProtocolPaused();
         require(staged, "EXPLOIT_NOT_STAGED");
         IMockToken(token).mint(attacker, 100e18);
     }
 
-    function pauseAll() external {
+    function emergencyPause() external {
+        if (msg.sender != emergencyModule) revert NotEmergencyModule();
         paused = true;
     }
 
@@ -62,5 +83,9 @@ contract CurveVyperReentrancyProtocolMock {
 
     function getMetrics() external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool) {
         return (accountedBalance0, accountedBalance1, actualBalance0, actualBalance1, virtualPrice, totalSupply, block.number, paused);
+    }
+
+    function _claimOwnerIfNeeded() internal {
+        if (owner == address(0)) owner = msg.sender;
     }
 }

@@ -5,6 +5,7 @@ import "../src/mocks/MockToken.sol";
 import "../src/mocks/CurveVyperReentrancyProtocolMock.sol";
 import "../src/mocks/CurveVyperReentrancyAttacker.sol";
 import "../src/CurveVyperReentrancyResponse.sol";
+import "../src/CurveVyperReentrancyEnvironmentRegistry.sol";
 
 interface VmScript {
     function startBroadcast() external;
@@ -19,20 +20,19 @@ contract DeployHoodiSimulation {
         address protocol;
         address attacker;
         address response;
+        address registry;
     }
-
-    Deployment public deployment;
 
     function run() external returns (Deployment memory out) {
         vm.startBroadcast();
         MockToken token = new MockToken();
-        CurveVyperReentrancyProtocolMock protocol = new CurveVyperReentrancyProtocolMock();
+        CurveVyperReentrancyProtocolMock protocol = new CurveVyperReentrancyProtocolMock(address(token));
         CurveVyperReentrancyAttacker attacker = new CurveVyperReentrancyAttacker(address(protocol));
         CurveVyperReentrancyResponse response = new CurveVyperReentrancyResponse();
-        protocol.setToken(address(token));
+        protocol.setEmergencyModule(address(response));
         protocol.seedHealthy(address(attacker));
-        out = Deployment(address(token), address(protocol), address(attacker), address(response));
-        deployment = out;
+        CurveVyperReentrancyEnvironmentRegistry registry = new CurveVyperReentrancyEnvironmentRegistry(keccak256("curve-vyper-reentrancy-trap-hoodi"), address(protocol), address(response), address(response), true);
+        out = Deployment(address(token), address(protocol), address(attacker), address(response), address(registry));
         vm.stopBroadcast();
     }
 }
